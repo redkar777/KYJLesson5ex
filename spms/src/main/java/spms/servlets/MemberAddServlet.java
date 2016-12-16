@@ -12,6 +12,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import spms.dao.MemberDao;
+import spms.vo.Member;
+
 // JSP 적용
 // - 입력폼 및 오류 처리 
 @WebServlet("/member/add")
@@ -37,13 +40,19 @@ public class MemberAddServlet extends HttpServlet {
 		try {
 			ServletContext sc = this.getServletContext();
 			conn = (Connection) sc.getAttribute("conn");  
-			stmt = conn.prepareStatement(
-					"INSERT INTO MEMBERS(EMAIL,PWD,MNAME,CRE_DATE,MOD_DATE)"
-					+ " VALUES (?,?,?,NOW(),NOW())");
-			stmt.setString(1, request.getParameter("email"));
-			stmt.setString(2, request.getParameter("password"));
-			stmt.setString(3, request.getParameter("name"));
-			stmt.executeUpdate();
+			
+			MemberDao memberDao = new MemberDao();
+			memberDao.setConnection(conn);
+			String memberEmail = request.getParameter("email");
+			String memberPassword = request.getParameter("password");
+			String memberName = request.getParameter("name");
+			
+			Member member = new Member();
+			member.setEmail(memberEmail);
+			member.setPassword(memberPassword);
+			member.setName(memberName);
+			
+			int memberCount = memberDao.MemeberInsert(member);
 			
 			response.sendRedirect("list");
 			
@@ -53,9 +62,6 @@ public class MemberAddServlet extends HttpServlet {
 			RequestDispatcher rd = request.getRequestDispatcher("/Error.jsp");
 			rd.forward(request, response);
 			
-		} finally {
-			try {if (stmt != null) stmt.close();} catch(Exception e) {}
-			//try {if (conn != null) conn.close();} catch(Exception e) {}
-		}
+		} 
 	}
 }
